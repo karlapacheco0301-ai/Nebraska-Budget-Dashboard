@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nebraska · Budget Intelligence Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--red:#CC0000;--red-light:#FFF0F0;--navy:#0C1E3A;--bg:#F0F4F8;--card:#FFFFFF;--border:#E2E8F0;--text:#0C1E3A;--muted:#64748B;--faint:#94A3B8;--green:#059669;--amber:#D97706;--blue:#1D5FA8;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;transition:background .3s,color .3s;}
+/* Dark Mode */
+body.dark{--bg:#0F172A;--card:#1E293B;--border:#2D3F58;--text:#E2E8F0;--muted:#94A3B8;--faint:#64748B;--red-light:#2D1010;}
+body.dark .ct{color:#E2E8F0;}body.dark .ins-title{color:#E2E8F0;}body.dark .page-title{color:#E2E8F0;}
+body.dark .rtbl td{border-bottom-color:#2D3F58;}body.dark .rtbl tbody tr:hover td{background:#243249;}
+body.dark .ctab.active{background:#2D3F58;}body.dark .ctabs{background:#0F172A;}
+body.dark .fund-track,.dark .prog-bar{background:#2D3F58;}
+/* Header */
+.hdr{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:58px;position:sticky;top:0;z-index:100;gap:12px;}
+.hdr-left{display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.ne-seal{width:32px;height:32px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0;}
+.hdr-wordmark{display:flex;flex-direction:column;}
+.hw-top{color:#fff;font-size:13px;font-weight:600;letter-spacing:.02em;}
+.hw-bot{color:rgba(255,255,255,.4);font-size:10px;letter-spacing:.04em;}
+.hdr-div{width:1px;height:28px;background:rgba(255,255,255,.12);}
+.hm{text-align:center;}
+.hm-v{color:#fff;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;}
+.hm-l{color:rgba(255,255,255,.4);font-size:9px;text-transform:uppercase;letter-spacing:.07em;margin-top:3px;}
+.hdr-actions{display:flex;align-items:center;gap:6px;}
+.hdr-btn{height:30px;padding:0 10px;border-radius:6px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:'DM Sans',sans-serif;transition:all .2s;white-space:nowrap;}
+.hdr-btn:hover{background:rgba(255,255,255,.18);color:#fff;}
+.hdr-btn.dm-on{background:rgba(255,220,100,.15);border-color:rgba(255,220,100,.3);color:#FFD700;}
+.hdr-tag{background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:5px 10px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase;flex-shrink:0;transition:all .3s;}
+
+/* Layout */
+.main{padding:20px 24px;max-width:1280px;margin:0 auto;}
+.page-hd{margin-bottom:14px;}
+.page-title{font-size:22px;font-weight:700;color:var(--navy);transition:color .3s;}
+.page-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px;}
+.kpi{background:var(--card);border-radius:12px;padding:16px 18px;border-top:3px solid;transition:box-shadow .2s,background .3s;}
+.kpi:hover{box-shadow:0 4px 20px rgba(0,0,0,.08);}
+.kpi-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:500;margin-bottom:8px;}
+.kpi-value{font-size:24px;font-weight:700;line-height:1;margin-bottom:6px;font-variant-numeric:tabular-nums;}
+.kpi-change{font-size:11px;font-weight:500;}
+.up{color:var(--green);}  .dn{color:#DC2626;}  .nt{color:var(--muted);}
+/* Cards */
+.card{background:var(--card);border-radius:12px;padding:20px;border:1px solid var(--border);transition:box-shadow .2s,background .3s,border-color .3s;}
+.card:hover{box-shadow:0 4px 16px rgba(0,0,0,.06);}
+.ct{font-size:14px;font-weight:600;color:var(--navy);transition:color .3s;}
+.cs{font-size:11px;color:var(--faint);margin-top:2px;margin-bottom:12px;}
+.chart-wrap{position:relative;}
+.h240{height:240px;} .h260{height:260px;} .h280{height:280px;} .h200{height:200px;} .h220{height:220px;}
+/* Chart tabs */
+.ctabs{display:flex;gap:2px;padding:3px;background:var(--bg);border-radius:8px;margin-bottom:10px;transition:background .3s;}
+.ctab{flex:1;padding:5px 8px;border:none;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;transition:all .2s;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;}
+.ctab:hover{color:var(--text);}
+.ctab.active{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1);}
+/* Grids */
+.g2{display:grid;gap:14px;margin-bottom:14px;}
+.g263{grid-template-columns:1.6fr 1fr;}
+.g255{grid-template-columns:1fr 1fr;}
+/* Fund bars */
+.fund-item{margin-bottom:14px;} .fund-item:last-child{margin-bottom:0;}
+.fund-row-hdr{display:flex;justify-content:space-between;margin-bottom:5px;}
+.fund-name{font-size:12px;font-weight:500;} .fund-meta{font-size:11px;color:var(--muted);}
+.fund-track{height:10px;background:var(--border);border-radius:5px;overflow:hidden;transition:background .3s;}
+.fund-fill{height:100%;border-radius:5px;}
+/* Insight */
+.insight{background:var(--card);border-radius:12px;padding:15px 16px;border-left:4px solid;border:1px solid var(--border);border-left-width:4px;transition:background .3s,border-color .3s;}
+.ins-icon{font-size:16px;margin-bottom:6px;display:block;}
+.ins-title{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:5px;transition:color .3s;}
+.ins-desc{font-size:11px;color:var(--muted);line-height:1.55;}
+/* Table */
+.rank-wrap{overflow-x:auto;}
+.rtbl{width:100%;border-collapse:collapse;}
+.rtbl th{font-size:10px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;padding:8px 12px;border-bottom:2px solid var(--border);text-align:left;white-space:nowrap;}
+.rtbl td{font-size:12px;padding:9px 12px;border-bottom:1px solid var(--border);transition:background .15s;}
+.rtbl tr:last-child td{border-bottom:none;}
+.rtbl tbody tr:hover td{background:var(--bg);}
+.rn-badge{width:26px;height:26px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+.prog-bar{height:6px;border-radius:3px;background:var(--border);margin-top:4px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:3px;}
+/* Sector table */
+.sec-tbl{width:100%;border-collapse:collapse;font-size:11px;}
+.sec-tbl th{font-size:9px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;padding:5px 8px;border-bottom:1px solid var(--border);text-align:left;}
+.sec-tbl td{padding:6px 8px;border-bottom:1px solid var(--border);}
+.sec-tbl tr:last-child td{border-bottom:none;}
+.sec-tbl tr:hover td{background:var(--bg);}
+.sec-dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle;}
+/* Legend */
+.lgnd{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.li{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);}
+.ld{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+/* Summary strip */
+.ss{background:var(--navy);border-radius:12px;padding:16px 24px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.ss-lbl{color:rgba(255,255,255,.5);font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;}
+.ss-val{color:#fff;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;transition:all .3s;}
+.ss-div{width:1px;height:36px;background:rgba(255,255,255,.12);}
+/* Section headers */
+.sec-hd{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.sec-hd-line{flex:1;height:1px;background:var(--border);}
+.sec-lbl{font-size:10px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;}
+/* Waterfall */
+.wf-row{display:flex;align-items:center;gap:10px;padding:3px 0;}
+.wf-lbl{font-size:11px;color:var(--muted);width:100px;text-align:right;flex-shrink:0;}
+.wf-bar{flex:1;}
+.wf-fill{height:22px;border-radius:3px;display:flex;align-items:center;padding-left:8px;}
+.wf-val{font-size:10px;font-weight:600;color:#fff;white-space:nowrap;}
+/* Footer */
+.footer{text-align:center;padding:14px;font-size:10px;color:var(--faint);border-top:1px solid var(--border);margin-top:6px;}
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="ne-seal">NE</div>
+    <div class="hdr-wordmark">
+      <span class="hw-top">STATE OF NEBRASKA</span>
+      <span class="hw-bot">Budget Intelligence Portal</span>
+    </div>
+    <div class="hdr-div"></div>
+    <div class="hdr-left" style="gap:22px;">
+      <div class="hm"><div class="hm-v" id="hdrTotal">$19.8B</div><div class="hm-l">All-Funds Total</div></div>
+      <div class="hm"><div class="hm-v">$5.48B</div><div class="hm-l">General Fund</div></div>
+      <div class="hm"><div class="hm-v">79</div><div class="hm-l">Agencies</div></div>
+      <div class="hm"><div class="hm-v">$877M</div><div class="hm-l">Cash Reserve</div></div>
+    </div>
+  </div>
+  <div class="hdr-actions">
+    <button class="hdr-btn" id="dmBtn" onclick="toggleDark()">🌙 Dark Mode</button>
+    <button class="hdr-btn" onclick="window.print()">⬇ Export PDF</button>
+    <div class="hdr-tag" id="hdrTag">FY 2025–26 Enacted</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="page-hd">
+    <div class="page-title">Budget Dashboard</div>
+    <div class="page-sub" id="pageSub">Nebraska State Budget · All Funds · FY2025-26 Enacted — 109th Legislature · August 2025</div>
+  </div>
+
+  <!-- SUMMARY STRIP -->
+  <div class="ss">
+    <div><div class="ss-lbl">Total All-Funds — <span id="ssYrLbl">FY2025-26</span></div><div class="ss-val" id="ssTotal">$19.8B</div></div>
+    <div class="ss-div"></div>
+    <div><div class="ss-lbl">General Fund Appropriated</div><div class="ss-val">$5.48B</div></div>
+    <div class="ss-div"></div>
+    <div><div class="ss-lbl">GF Projected Revenue</div><div class="ss-val">$6.87B</div></div>
+    <div class="ss-div"></div>
+    <div><div class="ss-lbl">Property Tax Relief Transfers</div><div class="ss-val">$1.71B</div></div>
+    <div class="ss-div"></div>
+    <div><div class="ss-lbl">GF Spending Growth</div><div class="ss-val">+1.3%</div></div>
+    <div class="ss-div"></div>
+    <div><div class="ss-lbl">20-Year Avg Growth</div><div class="ss-val">3.1%</div></div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-row">
+    <div class="kpi" style="border-color:var(--red);">
+      <div class="kpi-label">All-Funds Total</div>
+      <div class="kpi-value" id="kpiTotal" style="color:var(--red);">$19.8B</div>
+      <div class="kpi-change dn" id="kpiChg">▼ 0.2% vs FY25</div>
+    </div>
+    <div class="kpi" style="border-color:var(--blue);">
+      <div class="kpi-label">General Fund</div>
+      <div class="kpi-value" style="color:var(--blue);">$5.48B</div>
+      <div class="kpi-change up">▲ +1.3% growth</div>
+    </div>
+    <div class="kpi" style="border-color:#059669;">
+      <div class="kpi-label">GF Revenue</div>
+      <div class="kpi-value" style="color:#059669;">$6.87B</div>
+      <div class="kpi-change nt">Projected FY26</div>
+    </div>
+    <div class="kpi" style="border-color:var(--amber);">
+      <div class="kpi-label">Cash Reserve Fund</div>
+      <div class="kpi-value" style="color:var(--amber);">$877M</div>
+      <div class="kpi-change nt">~16% of GF exp.</div>
+    </div>
+    <div class="kpi" style="border-color:#6C63D4;">
+      <div class="kpi-label">Biennium Reserve</div>
+      <div class="kpi-value" style="color:#6C63D4;">$4.1M</div>
+      <div class="kpi-change dn">▼ $95.4M vs min.</div>
+    </div>
+  </div>
+
+  <!-- BUDGET FLOW -->
+  <div class="sec-hd" style="margin-top:2px;"><span class="sec-lbl">Budget Flow — Sources &amp; Uses</span><div class="sec-hd-line"></div></div>
+  <div class="card" style="padding:20px 18px;margin-bottom:14px;">
+    <div class="ct">Where the Money Comes From &amp; Where It Goes</div>
+    <div class="cs">All-funds proportional flow · FY2025-26 enacted · band width proportional to dollar amount</div>
+    <svg width="100%" viewBox="0 0 680 400" style="display:block;margin-top:6px;">
+      <text x="318" y="22" text-anchor="middle" fill="#94A3B8" font-size="10" font-weight="600" font-family="'DM Sans',sans-serif" letter-spacing="1.5">— WHERE THE MONEY COMES FROM —</text>
+      <text x="102" y="46" text-anchor="middle" fill="#64748B" font-size="10" font-family="'DM Sans',sans-serif">General Fund</text>
+      <text x="289" y="46" text-anchor="middle" fill="#64748B" font-size="10" font-family="'DM Sans',sans-serif">Cash Funds</text>
+      <text x="487" y="46" text-anchor="middle" fill="#64748B" font-size="10" font-family="'DM Sans',sans-serif">Federal Funds</text>
+      <text x="628" y="46" text-anchor="middle" fill="#64748B" font-size="10" font-family="'DM Sans',sans-serif">Revolving</text>
+      <rect x="20" y="55" width="165" height="28" rx="3" fill="#1D5FA8"/>
+      <text x="102" y="67" text-anchor="middle" dominant-baseline="central" fill="white" font-size="10" font-weight="500" font-family="'DM Sans',sans-serif">GF · $5.5B</text>
+      <rect x="200" y="55" width="178" height="28" rx="3" fill="#059669"/>
+      <text x="289" y="67" text-anchor="middle" dominant-baseline="central" fill="white" font-size="10" font-weight="500" font-family="'DM Sans',sans-serif">Cash · $5.9B</text>
+      <rect x="393" y="55" width="189" height="28" rx="3" fill="#D97706"/>
+      <text x="487" y="67" text-anchor="middle" dominant-baseline="central" fill="white" font-size="10" font-weight="500" font-family="'DM Sans',sans-serif">Federal · $6.3B *</text>
+      <rect x="597" y="55" width="63" height="28" rx="3" fill="#64748B"/>
+      <text x="628" y="67" text-anchor="middle" dominant-baseline="central" fill="white" font-size="9" font-family="'DM Sans',sans-serif">$1.8B</text>
+      <path d="M 20 83 L 20 183 L 185 183 L 185 83 Z" fill="#1D5FA8" opacity="0.18"/>
+      <path d="M 200 83 C 200 133,185 133,185 183 L 363 183 C 363 133,378 133,378 83 Z" fill="#059669" opacity="0.18"/>
+      <path d="M 393 83 C 393 133,363 133,363 183 L 552 183 C 552 133,582 133,582 83 Z" fill="#D97706" opacity="0.18"/>
+      <path d="M 597 83 C 597 133,552 133,552 183 L 615 183 C 615 133,660 133,660 83 Z" fill="#64748B" opacity="0.18"/>
+      <rect x="20"  y="183" width="165" height="38" fill="#1D5FA8"/>
+      <rect x="185" y="183" width="178" height="38" fill="#059669"/>
+      <rect x="363" y="183" width="189" height="38" fill="#D97706"/>
+      <rect x="552" y="183" width="63"  height="38" fill="#64748B"/>
+      <rect x="104" y="189" width="432" height="26" rx="5" fill="#0C1E3A" opacity="0.78"/>
+      <text x="320" y="202" text-anchor="middle" dominant-baseline="central" fill="white" font-size="13" font-weight="600" font-family="'DM Sans',sans-serif">ALL FUNDS = $19.8B · NEBRASKA · FY 2025-26</text>
+      <path d="M 20 221 L 20 311 L 272 311 L 272 221 Z" fill="#D85A30" opacity="0.2"/>
+      <path d="M 272 221 C 272 266,282 266,282 311 L 455 311 C 455 266,445 266,445 221 Z" fill="#6C63D4" opacity="0.2"/>
+      <path d="M 445 221 C 445 266,465 266,465 311 L 512 311 C 512 266,492 266,492 221 Z" fill="#1D5FA8" opacity="0.18"/>
+      <path d="M 492 221 C 492 266,522 266,522 311 L 569 311 C 569 266,539 266,539 221 Z" fill="#B45309" opacity="0.2"/>
+      <path d="M 539 221 C 539 266,579 266,579 311 L 655 311 C 655 266,615 266,615 221 Z" fill="#94A3B8" opacity="0.16"/>
+      <rect x="20"  y="311" width="252" height="28" rx="3" fill="#D85A30"/>
+      <text x="146" y="323" text-anchor="middle" dominant-baseline="central" fill="white" font-size="10" font-weight="500" font-family="'DM Sans',sans-serif">Health &amp; Human Svcs · $8.4B · 43%</text>
+      <rect x="282" y="311" width="173" height="28" rx="3" fill="#6C63D4"/>
+      <text x="368" y="323" text-anchor="middle" dominant-baseline="central" fill="white" font-size="10" font-weight="500" font-family="'DM Sans',sans-serif">Education · $5.8B · 29%</text>
+      <rect x="465" y="311" width="47"  height="28" rx="3" fill="#1D5FA8"/>
+      <text x="488" y="323" text-anchor="middle" dominant-baseline="central" fill="white" font-size="9" font-family="'DM Sans',sans-serif">$1.6B</text>
+      <rect x="522" y="311" width="47"  height="28" rx="3" fill="#B45309"/>
+      <text x="545" y="323" text-anchor="middle" dominant-baseline="central" fill="white" font-size="9" font-family="'DM Sans',sans-serif">$1.6B</text>
+      <rect x="579" y="311" width="76"  height="28" rx="3" fill="#94A3B8"/>
+      <text x="617" y="323" text-anchor="middle" dominant-baseline="central" fill="white" font-size="9" font-family="'DM Sans',sans-serif">9 sectors · $2.3B</text>
+      <text x="146" y="350" text-anchor="middle" fill="#475569" font-size="10" font-family="'DM Sans',sans-serif">Health &amp; Human Services</text>
+      <text x="368" y="350" text-anchor="middle" fill="#475569" font-size="10" font-family="'DM Sans',sans-serif">Education</text>
+      <text x="488" y="350" text-anchor="middle" fill="#475569" font-size="10" font-family="'DM Sans',sans-serif">Financial Svcs</text>
+      <text x="545" y="350" text-anchor="middle" fill="#475569" font-size="10" font-family="'DM Sans',sans-serif">Transportation</text>
+      <text x="617" y="350" text-anchor="middle" fill="#475569" font-size="10" font-family="'DM Sans',sans-serif">Remaining Sectors</text>
+      <text x="318" y="369" text-anchor="middle" fill="#94A3B8" font-size="10" font-weight="600" font-family="'DM Sans',sans-serif" letter-spacing="1.5">— WHERE THE MONEY GOES —</text>
+      <text x="318" y="387" text-anchor="middle" fill="#CBD5E1" font-size="8.5" font-family="'DM Sans',sans-serif">GF revenue: Ind. income tax 44% · Sales &amp; use tax 38% · Corp. income tax 13% · Misc. 5% · * Federal funds estimated · $1.71B of GF transferred for property tax relief</text>
+    </svg>
+  </div>
+
+  <!-- ROW 1: Budget Trend — full width -->
+  <div class="card" style="margin-bottom:14px;">
+    <div class="ct">Budget Trend — All Funds</div>
+    <div class="cs">Total appropriations by fiscal year (FY2022–FY2026) · all fund types combined · $B</div>
+    <div class="chart-wrap" style="height:280px;"><canvas id="trendChart"></canvas></div>
+  </div>
+
+  <!-- ROW 2: Top 10 Agencies — full width -->
+  <div class="card" style="margin-bottom:14px;">
+    <div class="ct">Top 10 Agencies — By Appropriation</div>
+    <div class="cs">FY2025-26 enacted appropriations · sorted by selected fund type · operations + aid combined</div>
+    <div class="ctabs" id="agTabs">
+      <button class="ctab active" onclick="setAgView('all',this)">🌐 All Funds</button>
+      <button class="ctab" onclick="setAgView('gf',this)">💰 General Fund</button>
+      <button class="ctab" onclick="setAgView('cf',this)">💵 Cash Funds</button>
+      <button class="ctab" onclick="setAgView('ff',this)">🇺🇸 Federal Funds</button>
+      <button class="ctab" onclick="setAgView('rv',this)">🔄 Revolving</button>
+      <button class="ctab" onclick="setAgView('yoy',this)">📈 FY25 → FY26 Change</button>
+    </div>
+    <div id="agAllWrap"><div class="chart-wrap" style="height:300px;"><canvas id="agAllBar"></canvas></div></div>
+    <div id="agGfWrap" style="display:none;"><div class="chart-wrap" style="height:300px;"><canvas id="agBar"></canvas></div></div>
+    <div id="agCfWrap" style="display:none;"><div class="chart-wrap" style="height:300px;"><canvas id="agCfBar"></canvas></div></div>
+    <div id="agFfWrap" style="display:none;"><div class="chart-wrap" style="height:300px;"><canvas id="agFfBar"></canvas></div></div>
+    <div id="agRvWrap" style="display:none;"><div class="chart-wrap" style="height:300px;"><canvas id="agRvBar"></canvas></div></div>
+    <div id="agYoyWrap" style="display:none;"><div class="chart-wrap" style="height:300px;"><canvas id="agYoyBar"></canvas></div></div>
+  </div>
+
+  <!-- ROW 3: Budget by Sector + GF Revenue Sources — side by side -->
+  <div class="g2 g255">
+    <div class="card">
+      <div class="ct">Budget by Sector — Top 10</div>
+      <div class="cs" id="secCardSub">FY2025-26 all-funds · top 10 sectors by spending (ranked by KAIP Sectors data) · remaining 4 sectors grouped as "Other"</div>
+      <div class="ctabs" id="secTabs">
+        <button class="ctab active" onclick="setSectorView('donut',this,0)">🍩 Donut</button>
+        <button class="ctab" onclick="setSectorView('bar',this,0)">📊 Bar</button>
+        <button class="ctab" onclick="setSectorView('table',this,0)">📋 Table</button>
+      </div>
+      <div id="secDonutWrap"><div class="chart-wrap h200"><canvas id="sectorDonut"></canvas></div><div class="lgnd" id="sectorLgnd"></div></div>
+      <div id="secBarWrap" style="display:none;"><div class="chart-wrap h240"><canvas id="sectorBar"></canvas></div></div>
+      <div id="secTableWrap" style="display:none;max-height:260px;overflow-y:auto;"><table class="sec-tbl" id="secTable"></table></div>
+    </div>
+    <div class="card">
+      <div class="ct">GF Revenue Sources</div>
+      <div class="cs">Where the General Fund comes from · FY2025-26 · click a block for details</div>
+      <div id="revTreemap" style="height:240px;border-radius:8px;overflow:hidden;"></div>
+      <div id="revDetail" style="display:none;margin-top:12px;border-radius:8px;overflow:hidden;border:1px solid var(--border);"></div>
+    </div>
+  </div>
+
+  <!-- ROW 3: Fund Types + GF Cat -->
+  <div class="g2 g255">
+    <div class="card" id="fundCard">
+      <div class="ct">Fund Types Breakdown</div>
+      <div class="cs">FY2025-26 all-funds · click a fund type to explore · $19.8B total</div>
+
+      <!-- Stacked proportional bar -->
+      <div style="display:flex;border-radius:8px;overflow:hidden;height:14px;margin-bottom:16px;gap:2px;" id="fundStrip"></div>
+
+      <!-- 4 clickable fund tiles -->
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;" id="fundTiles"></div>
+
+      <!-- Detail panel (shown on click) -->
+      <div id="fundDetail" style="display:none;margin-top:14px;padding:12px 14px;border-radius:8px;border-left:4px solid;border:1px solid var(--border);border-left-width:4px;">
+        <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px;" id="fdTitle"></div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.6;" id="fdBody"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">General Fund by Category</div>
+      <div class="cs">How the $5.48B General Fund is allocated · FY2025-26</div>
+      <div id="gfRings" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:6px;"></div>
+    </div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div class="sec-hd"><span class="sec-lbl">Key Budget Findings</span><div class="sec-hd-line"></div></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;" id="insights"></div>
+
+  <!-- RANKINGS TREEMAP -->
+  <div class="sec-hd"><span class="sec-lbl">Top 10 Agencies — General Fund Treemap</span><div class="sec-hd-line"></div></div>
+  <div class="card" style="padding:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <div class="ct">Top 10 Agencies — General Fund Treemap</div>
+      <span style="font-size:10px;color:var(--faint);">Click any block for details</span>
+    </div>
+    <div class="cs" style="margin-bottom:14px;">FY2025-26 enacted GF · top 10 agencies by GF appropriation (source: LFO Budget Report, Table 14) · area proportional to budget · operations + aid combined</div>
+    <div id="tmapWrap" style="width:100%;height:400px;position:relative;border-radius:8px;overflow:hidden;"></div>
+    <!-- Detail panel -->
+    <div id="tmapDetail" style="display:none;margin-top:14px;border-radius:10px;overflow:hidden;border:1px solid var(--border);">
+      <div id="tmapDetailInner"></div>
+    </div>
+  </div>
+
+  <!-- WATERFALL -->
+  <div class="sec-hd" style="margin-top:14px;"><span class="sec-lbl">General Fund Flow — FY2025-26</span><div class="sec-hd-line"></div></div>
+  <div class="card">
+    <div class="cs">From gross GF revenues to net appropriated spending</div>
+    <div id="wf" style="margin-top:8px;"></div>
+  </div>
+</div>
+
+<div class="footer">Nebraska State Budget · FY2025-26 Enacted · 109th Legislature · August 2025 · Source: Nebraska Legislative Fiscal Office</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+Chart.defaults.font.family="'DM Sans',sans-serif";
+Chart.defaults.color='#64748B';
+
+// ── Chart References ───────────────────────────────────────────────────────
+let tRef=null,sdRef=null,sbRef=null;
+
+const AG=[
+  {n:'Health & Human Services',v:2051.6,v25:2023.3,c:'#D85A30'},
+  {n:'Dept. of Education',v:1333.0,v25:1344.0,c:'#6C63D4'},
+  {n:'University of Nebraska',v:708.1,v25:703.7,c:'#1D5FA8'},
+  {n:'Dept. of Corrections',v:382.5,v25:370.4,c:'#DC2626'},
+  {n:'Supreme Court',v:245.2,v25:239.4,c:'#4B3FC0'},
+  {n:'Dept. of Revenue',v:204.3,v25:193.6,c:'#0D7A5F'},
+  {n:'Community Colleges',v:119.1,v25:119.1,c:'#059669'},
+  {n:'State Patrol',v:90.7,v25:91.0,c:'#64748B'},
+  {n:'State Colleges',v:77.2,v25:75.1,c:'#B45309'},
+  {n:'Veterans Affairs',v:58.1,v25:56.4,c:'#5A7A1E'}
+];
+
+const RV=[{n:'Individual Income Tax',v:44.5,c:'#1D5FA8'},{n:'Sales & Use Tax',v:37.9,c:'#3B82F6'},{n:'Corporate Income Tax',v:13.1,c:'#93C5FD'},{n:'Misc. / Transfers',v:4.5,c:'#BFDBFE'}];
+const FU=[{n:'Federal Funds (est.)',v:6258,p:31.6,c:'#D97706'},{n:'Cash Funds',v:5928,p:29.9,c:'#059669'},{n:'General Fund',v:5485,p:27.7,c:'#1D5FA8'},{n:'Revolving (est.)',v:2128,p:10.7,c:'#64748B'}];
+const GC=[{n:'Agency Operations',v:2121.4,c:'#1D5FA8'},{n:'Aid to Individuals',v:1747.6,c:'#D85A30'},{n:'Aid to Local Govt',v:1594.0,c:'#6C63D4'},{n:'Construction',v:21.6,c:'#059669'}];
+const RK=[
+  {n:'Health & Human Services',v:'$2,051.6M',p:37.4,r:2051.6},{n:'Dept. of Education',v:'$1,333.0M',p:24.3,r:1333.0},
+  {n:'University of Nebraska',v:'$708.1M',p:12.9,r:708.1},{n:'Dept. of Corrections',v:'$382.5M',p:7.0,r:382.5},
+  {n:'Supreme Court',v:'$245.2M',p:4.5,r:245.2},{n:'Dept. of Revenue',v:'$204.3M',p:3.7,r:204.3},
+  {n:'Community Colleges',v:'$119.1M',p:2.2,r:119.1},{n:'State Patrol',v:'$90.7M',p:1.7,r:90.7},
+  {n:'State Colleges',v:'$77.2M',p:1.4,r:77.2},{n:'Veterans Affairs',v:'$58.1M',p:1.1,r:58.1},
+  {n:'Retirement Board',v:'$36.4M',p:0.7,r:36.4},{n:'Water, Energy & Environ.',v:'$16.3M',p:0.3,r:16.3}
+];
+const IN=[
+  {i:'⚠',c:'#DC2626',t:'Budget at the edge',d:'FY25 revenue came in $96.5M below forecast. The state ended $95.4M BELOW the 3% minimum reserve — closest fiscal call since 2009.'},
+  {i:'↑',c:'#D85A30',t:'Medicaid: +7% — the big driver',d:'Medicaid GF costs rose $70.6M to $1.083B. Federal FMAP rate fell 58.6% → 54.4%, costing Nebraska $295.5M more over the biennium.'},
+  {i:'→',c:'#6C63D4',t:'$1.71B in property tax transfers',d:'$1 of every $4 of GF gross revenue exits immediately: $780M School Relief + $422M Property Tax Credit + $242M Education Future Fund.'},
+  {i:'↑',c:'#059669',t:'Dev. Disabilities +7.6%',d:'DD Aid grew $197M → $213M to eliminate the state waitlist. $22.7M in federal matching secured to accelerate service access.'},
+  {i:'✕',c:'#64748B',t:'~$43M in programs cut',d:'Eliminated: Opportunity Scholarships ($9.3M), Broadband Bridge ($19.8M), Rural Projects Act ($4.9M), State Marketing ($5M), Small Business Act ($4.2M).'},
+  {i:'⚠',c:'#4B3FC0',t:'FY28-29 shortfall projected',d:'The next biennium already projects $218M below minimum reserve. Revenue must grow 5–6% annually. FY25 missed target by $96.5M.'}
+];
+const WF=[
+  {l:'GF Gross Revenue',v:6870,c:'#059669'},{l:'Transfers Out',v:-1710,c:'#DC2626'},
+  {l:'Net GF Available',v:5160,c:'#1D5FA8',b:true},{l:'Agency Operations',v:-2121,c:'#64748B'},
+  {l:'Aid to Individuals',v:-1748,c:'#64748B'},{l:'Aid to Local Govt',v:-1594,c:'#64748B'},
+  {l:'Construction',v:-22,c:'#64748B'},{l:'Ending Balance',v:433,c:'#D97706',b:true}
+];
+
+// Top 10 sectors + "Other Sectors" (Labour $65.3M + Gen.Govt $45.3M + Regulatory $36.4M + Community $15.1M = $162.1M)
+const SC=[
+  {n:'Health & Human Svcs',c:'#D85A30'},{n:'Education',c:'#6C63D4'},{n:'Financial Services',c:'#1D5FA8'},
+  {n:'Transportation',c:'#B45309'},{n:'Public Safety',c:'#DC2626'},{n:'Legal & Judiciary',c:'#4B3FC0'},
+  {n:'Infrastructure',c:'#0D7A5F'},{n:'Admin Services',c:'#64748B'},{n:'Economic Dev.',c:'#5A7A1E'},
+  {n:'Agriculture',c:'#2F7A3B'},{n:'Other Sectors (4)',c:'#CBD5E1'}
+];
+const SC26=[8575.8,5791.4,1632.0,1507.4,640.1,414.5,317.4,299.3,253.7,204.4,162.1];
+
+function toggleDark(){
+  const dark=document.body.classList.toggle('dark');
+  const b=document.getElementById('dmBtn');
+  b.textContent=dark?'☀ Light Mode':'🌙 Dark Mode';
+  b.classList.toggle('dm-on',dark);
+}
+
+function setSectorView(v,btn,group){
+  document.getElementById('secTabs').querySelectorAll('.ctab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('secDonutWrap').style.display=v==='donut'?'':'none';
+  document.getElementById('secBarWrap').style.display=v==='bar'?'':'none';
+  document.getElementById('secTableWrap').style.display=v==='table'?'':'none';
+}
+
+function setAgView(v,btn){
+  document.getElementById('agTabs').querySelectorAll('.ctab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('agAllWrap').style.display=v==='all'?'':'none';
+  document.getElementById('agGfWrap').style.display=v==='gf'?'':'none';
+  document.getElementById('agCfWrap').style.display=v==='cf'?'':'none';
+  document.getElementById('agFfWrap').style.display=v==='ff'?'':'none';
+  document.getElementById('agRvWrap').style.display=v==='rv'?'':'none';
+  document.getElementById('agYoyWrap').style.display=v==='yoy'?'':'none';
+}
+
+function buildSecTable(){
+  const tbl=document.getElementById('secTable');if(!tbl)return;
+  const s=SC26;const tot=s.reduce((a,b)=>a+b,0);
+  const rows=SC.map((sc,i)=>({n:sc.n,c:sc.c,v:s[i]})).sort((a,b)=>b.v-a.v);
+  tbl.innerHTML=`<thead><tr><th>Sector</th><th style="text-align:right">Amount</th><th style="text-align:right">% Total</th></tr></thead><tbody>${
+    rows.map(r=>`<tr><td><span class="sec-dot" style="background:${r.c}"></span>${r.n}</td><td style="text-align:right;font-weight:600">$${(r.v/1000).toFixed(1)}B</td><td style="text-align:right;color:var(--muted)">${(r.v/tot*100).toFixed(1)}%</td></tr>`).join('')
+  }</tbody>`;
+}
+
+// ── BUILD CHARTS ───────────────────────────────────────────────────────────
+const TOpts={backgroundColor:'#0C1E3A',titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',padding:10,cornerRadius:8};
+
+// 1. Budget Trend
+const tCtx=document.getElementById('trendChart').getContext('2d');
+const tGrad=tCtx.createLinearGradient(0,0,0,280);
+tGrad.addColorStop(0,'rgba(204,0,0,.18)');tGrad.addColorStop(1,'rgba(204,0,0,.01)');
+tRef=new Chart(tCtx,{type:'line',data:{labels:['FY2022','FY2023','FY2024','FY2025','FY2026'],datasets:[{label:'Budget ($B)',data:[14.938,15.499,18.600,19.840,19.798],borderColor:'#CC0000',borderWidth:2.5,backgroundColor:tGrad,tension:0.35,fill:true,pointBackgroundColor:'#CC0000',pointBorderColor:'#fff',pointBorderWidth:[2,2,2,2,3],pointRadius:[5,5,5,5,11]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TOpts,callbacks:{label:c=>` $${c.parsed.y.toFixed(2)}B all-funds`}}},scales:{y:{min:12,max:22,ticks:{callback:v=>'$'+v+'B',font:{size:11}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:12}},grid:{display:false}}}}});
+
+// 2. Sector Donut
+sdRef=new Chart(document.getElementById('sectorDonut').getContext('2d'),{type:'doughnut',data:{labels:SC.map(d=>d.n),datasets:[{data:SC26,backgroundColor:SC.map(d=>d.c),borderWidth:2,borderColor:'#fff',hoverBorderWidth:3}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{...TOpts,callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);return ` $${(c.parsed/1000).toFixed(1)}B · ${(c.parsed/t*100).toFixed(1)}%`;}}}}}}); 
+const sl=document.getElementById('sectorLgnd');
+SC.forEach(d=>{const e=document.createElement('div');e.className='li';e.innerHTML=`<span class="ld" style="background:${d.c}"></span>${d.n}`;sl.appendChild(e);});
+
+// 3. Sector Bar (alt view)
+sbRef=new Chart(document.getElementById('sectorBar').getContext('2d'),{type:'bar',data:{labels:SC.map(d=>d.n),datasets:[{data:SC26,backgroundColor:SC.map(d=>d.c+'CC'),borderColor:SC.map(d=>d.c),borderWidth:1,borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TOpts,callbacks:{label:c=>` $${(c.parsed.x/1000).toFixed(1)}B`}}},scales:{x:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'B',font:{size:9}},grid:{color:'#F1F5F9'}},y:{ticks:{font:{size:9}},grid:{display:false}}}}});
+
+// 4. Build sector table
+buildSecTable();
+
+// All-Funds top 10 (from KAIP Departments template — total budget all fund types)
+const AG_ALL=[
+  {n:'Health & Human Services', v:8289.9, c:'#D85A30'},
+  {n:'University of Nebraska',  v:2868.2, c:'#1D5FA8'},
+  {n:'Dept. of Education',       v:2242.2, c:'#6C63D4'},
+  {n:'Dept. of Transportation',  v:1502.5, c:'#B45309'},
+  {n:'Dept. of Revenue',         v:1472.4, c:'#0D7A5F'},
+  {n:'Dept. of Corrections',     v:411.6,  c:'#DC2626'},
+  {n:'Community Colleges',       v:385.1,  c:'#059669'},
+  {n:'Admin. Services (DAS)',    v:336.1,  c:'#64748B'},
+  {n:'Supreme Court',            v:258.3,  c:'#4B3FC0'},
+  {n:'Water, Energy & Environ.', v:222.2,  c:'#2F7A3B'},
+];
+
+// Cash Funds top 10 (FY2025-26 enacted, from LFO budget report)
+const AG_CF=[
+  {n:'Dept. of Transportation',  v:1362.6, c:'#B45309'},
+  {n:'Dept. of Revenue',         v:1278.7, c:'#0D7A5F'},
+  {n:'Health & Human Services',  v:1004.1, c:'#D85A30'},
+  {n:'University of Nebraska',   v:520.6,  c:'#1D5FA8'},
+  {n:'Dept. of Education',        v:440.0,  c:'#6C63D4'},
+  {n:'Community Colleges',        v:266.0,  c:'#059669'},
+  {n:'Economic Development',      v:160.6,  c:'#5A7A1E'},
+  {n:'Game and Parks',            v:125.4,  c:'#2F7A3B'},
+  {n:'Water, Energy & Environ.',  v:122.1,  c:'#7C6B00'},
+  {n:'Public Service Comm.',      v:112.8,  c:'#8069C6'},
+];
+
+// 4-a. All Funds Bar
+new Chart(document.getElementById('agAllBar').getContext('2d'),{type:'bar',
+  data:{labels:AG_ALL.map(d=>d.n),datasets:[{data:AG_ALL.map(d=>d.v),backgroundColor:AG_ALL.map(d=>d.c+'CC'),borderColor:AG_ALL.map(d=>d.c),borderWidth:1,borderRadius:4}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TOpts,callbacks:{
+      label:c=>` $${c.parsed.x.toFixed(1)}B  (all funds)`,
+      footer:()=>'Source: KAIP Departments Template · FY2025-26'
+    }}},
+    scales:{x:{ticks:{callback:v=>'$'+v+'B',font:{size:11}},grid:{color:'#F1F5F9'}},y:{ticks:{font:{size:12}},grid:{display:false}}}}});
+
+// 4-b. General Fund Bar
+new Chart(document.getElementById('agBar').getContext('2d'),{type:'bar',
+  data:{labels:AG.map(d=>d.n),datasets:[{data:AG.map(d=>d.v),backgroundColor:AG.map(d=>d.c+'CC'),borderColor:AG.map(d=>d.c),borderWidth:1,borderRadius:4}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TOpts,callbacks:{label:c=>` $${c.parsed.x.toFixed(1)}M  (General Fund)`}}},
+    scales:{x:{ticks:{callback:v=>'$'+v+'M',font:{size:11}},grid:{color:'#F1F5F9'}},y:{ticks:{font:{size:12}},grid:{display:false}}}}});
+
+// 4-c. Cash Funds Bar
+new Chart(document.getElementById('agCfBar').getContext('2d'),{type:'bar',
+  data:{labels:AG_CF.map(d=>d.n),datasets:[{data:AG_CF.map(d=>d.v),backgroundColor:AG_CF.map(d=>d.c+'CC'),borderColor:AG_CF.map(d=>d.c),borderWidth:1,borderRadius:4}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{...TOpts,callbacks:{label:c=>` $${c.parsed.x.toFixed(1)}M  (Cash Funds)`}}},
+    scales:{x:{ticks:{callback:v=>'$'+v+'M',font:{size:11}},grid:{color:'#F1F5F9'}},y:{ticks:{font:{size:12}},grid:{display:false}}}}});
+
+// Federal Funds top 10 (est. — derived from total all-funds minus GF minus Cash, LFO data)
+const AG_FF=[
+  {n:'Health & Human Services', v:5234, c:'#D85A30'},
+  {n:'Dept. of Education',       v:380,  c:'#6C63D4'},
+  {n:'Dept. of Labor',           v:280,  c:'#7C6B00'},
+  {n:'University of Nebraska',   v:120,  c:'#1D5FA8'},
+  {n:'Dept. of Transportation',  v:145,  c:'#B45309'},
+  {n:'Military Dept.',            v:30,   c:'#64748B'},
+  {n:'Water, Energy & Environ.', v:28,   c:'#2F7A3B'},
+  {n:'Dept. of Corrections',     v:12,   c:'#DC2626'},
+  {n:'Economic Development',     v:8,    c:'#5A7A1E'},
+  {n:'Blind/VI Rehab',           v:5,    c:'#8069C6'},
+];
+
+// Revolving Funds top 10 (est. — internal service, enterprise, trust accounts)
+const AG_RV=[
+  {n:'University of Nebraska',   v:800, c:'#1D5FA8'},
+  {n:'Admin. Services (DAS)',    v:620, c:'#64748B'},
+  {n:'Health & Human Services',  v:400, c:'#D85A30'},
+  {n:'Dept. of Transportation',  v:180, c:'#B45309'},
+  {n:'Dept. of Revenue',         v:50,  c:'#0D7A5F'},
+  {n:'State Colleges',           v:30,  c:'#B45309'},
+  {n:'Game and Parks',           v:20,  c:'#2F7A3B'},
+  {n:'Dept. of Corrections',     v:10,  c:'#DC2626'},
+  {n:'Supreme Court',            v:6,   c:'#4B3FC0'},
+  {n:'Military Dept.',            v:4,   c:'#64748B'},
+];
+
+// 4-d. Federal Funds Bar
+new Chart(document.getElementById('agFfBar').getContext('2d'),{type:'bar',
+  data:{labels:AG_FF.map(d=>d.n),datasets:[{data:AG_FF.map(d=>d.v),backgroundColor:AG_FF.map(d=>d.c+'CC'),borderColor:AG_FF.map(d=>d.c),borderWidth:1,borderRadius:4}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},
+      tooltip:{...TOpts,callbacks:{label:c=>` $${c.parsed.x.toFixed(0)}M est.  (Federal Funds)`,footer:()=>['Source: derived from all-funds minus GF minus Cash · LFO data']}}},
+    scales:{x:{ticks:{callback:v=>'$'+v+'M',font:{size:11}},grid:{color:'#F1F5F9'}},y:{ticks:{font:{size:12}},grid:{display:false}}}}});
+
+// 4-e. Revolving Funds Bar
+new Chart(document.getElementById('agRvBar').getContext('2d'),{type:'bar',
+  data:{labels:AG_RV.map(d=>d.n),datasets:[{data:AG_RV.map(d=>d.v),backgroundColor:AG_RV.map(d=>d.c+'CC'),borderColor:AG_RV.map(d=>d.c),borderWidth:1,borderRadius:4}]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},
+      tooltip:{...TOpts,callbacks:{label:c=>` $${c.parsed.x.toFixed(0)}M est.  (Revolving Funds)`,footer:()=>['Source: internal service, enterprise & trust accounts · est.']}}},
+    scales:{x:{ticks:{callback:v=>'$'+v+'M',font:{size:11}},grid:{color:'#F1F5F9'}},y:{ticks:{font:{size:12}},grid:{display:false}}}}});
+
+// 4-f. Agency YoY Bar
+const yDelta=AG.map(d=>+(d.v-d.v25).toFixed(1));
+new Chart(document.getElementById('agYoyBar').getContext('2d'),{type:'bar',data:{labels:AG.map(d=>d.n),datasets:[{label:'$ Change',data:yDelta,backgroundColor:yDelta.map(v=>v>=0?'#05966977':'#DC262677'),borderColor:yDelta.map(v=>v>=0?'#059669':'#DC2626'),borderWidth:1,borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TOpts,callbacks:{label:c=>{const v=c.parsed.x,pct=((v/AG[c.dataIndex].v25)*100).toFixed(1);return ` ${v>=0?'+':''}$${v}M (${v>=0?'+':''}${pct}%)`;},title:c=>`${c[0].label}: FY25 → FY26`}}},scales:{x:{ticks:{callback:v=>(v>=0?'+':'')+v+'M',font:{size:11}},grid:{color:'#F1F5F9'}},y:{ticks:{font:{size:12}},grid:{display:false}}}}});
+
+// 7. GF Revenue Treemap (replaces donut)
+// Layout: left col = Ind. Income Tax (44.5%),  right col = the rest
+// Right col top = Sales & Use Tax (37.9%),  right col bottom = Corp + Misc side by side
+const RV_TREE=[
+  {n:'Individual\nIncome Tax', full:'Individual Income Tax',  v:44.5, amt:'$3.055B', c:'#1D5FA8', ct:'#fff',
+   trend:'▲ Growing — Corporate and pass-through income strong in FY24-25',
+   desc:'The largest revenue source for Nebraska\'s General Fund. Taxes wages, salaries, business partnership income, and capital gains. Nebraska uses a graduated rate structure up to 5.84% (post-2022 reform).',
+   facts:['FY25 actual receipts: $2.180B — missed forecast by $120M','Rate reduced from 6.84% to 5.84% under LB 873 (2022)','Pass-through business income is the most volatile component','Individual + Corporate combined = 57.6% of all GF revenue']},
+  {n:'Sales &\nUse Tax',       full:'Sales & Use Tax',        v:37.9, amt:'$2.600B', c:'#3B82F6', ct:'#fff',
+   trend:'▲ Stable — consumer spending held up despite inflation',
+   desc:'Taxes retail sales of tangible goods and some services at a base rate of 5.5%. Nebraska cities and counties can add local option sales taxes. E-commerce and marketplace facilitator rules have expanded the base.',
+   facts:['FY25 actual receipts: $2.517B — slightly above forecast','State rate: 5.5% (locals add 0.5%–2.5% on top)','Online sales now included under 2019 marketplace facilitator law','Groceries are exempt; most services are also exempt']},
+  {n:'Corporate\nIncome Tax',  full:'Corporate Income Tax',   v:13.1, amt:'$0.903B', c:'#60A5FA', ct:'#fff',
+   trend:'▲ Recent surge — hit record highs FY2022-2024, now normalizing',
+   desc:'Taxes net income of corporations doing business in Nebraska. The rate was reduced from 7.81% to 5.84% under LB 873 (2022) phased over several years. Recent years saw record receipts driven by strong corporate profits nationally.',
+   facts:['FY25 actual receipts: $1.075B — well above the $903M forecast','Rate being phased down to 5.84% by 2027 under LB 873','Apportioned based on Nebraska sales, payroll, and property','Highly volatile — closely tied to national economic cycles']},
+  {n:'Misc. &\nTransfers',     full:'Misc. / Transfers',      v:4.5,  amt:'$0.312B', c:'#BFDBFE', ct:'#1D5FA8',
+   trend:'▲ Boosted in FY26 by investment earnings redirected to GF',
+   desc:'Includes interest and investment earnings on state cash balances, fees, fines, and legislative transfers from various state cash funds to the General Fund. The 2025 Legislature added ~$30.7M by redirecting investment earnings from 6 additional funds.',
+   facts:['$30.7M in new investment earnings directed to GF (FY26 enacted)','Transfers in: $34M Securities Fund + $14M Insurance Fund + $9.5M Tobacco Fund','Also includes license fees, fines, court-related revenue','Most volatile and unpredictable GF revenue category']},
+];
+let activeRev=null;
+const tm=document.getElementById('revTreemap');
+tm.style.cssText='height:240px;border-radius:8px;overflow:hidden;display:flex;gap:2px;';
+
+function buildTile(idx, style){
+  const d=RV_TREE[idx];
+  const t=document.createElement('div');
+  t.id=`rtile${idx}`;
+  t.style.cssText=`${style}background:${d.c};border-radius:4px;display:flex;flex-direction:column;justify-content:flex-end;padding:10px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;`;
+  t.innerHTML=`
+    <div style="font-size:${idx<2?'22':'16'}px;font-weight:700;color:${d.ct};line-height:1;margin-bottom:3px;">${d.v}%</div>
+    <div style="font-size:${idx<2?'11':'9.5'}px;font-weight:600;color:${d.ct};opacity:.9;line-height:1.3;white-space:pre-line;">${d.n}</div>
+    <div style="font-size:${idx<2?'11':'9'}px;color:${d.ct};opacity:.7;margin-top:2px;">${d.amt}</div>`;
+  t.onmouseenter=()=>{if(activeRev!==idx){t.style.filter='brightness(1.12)';t.style.transform='scale(1.01)';}};
+  t.onmouseleave=()=>{if(activeRev!==idx){t.style.filter='';t.style.transform='';}};
+  t.onclick=()=>{
+    const panel=document.getElementById('revDetail');
+    if(activeRev===idx){
+      activeRev=null; panel.style.display='none';
+      [0,1,2,3].forEach(j=>{const el=document.getElementById('rtile'+j);if(el){el.style.opacity='1';el.style.filter='';el.style.transform='';}});
+      return;
+    }
+    activeRev=idx;
+    [0,1,2,3].forEach(j=>{
+      const el=document.getElementById('rtile'+j);
+      if(el){el.style.opacity=j===idx?'1':'0.4';el.style.filter=j===idx?'brightness(1.1)':'';el.style.transform=j===idx?'scale(1.02)':'';}
+    });
+    const facts=d.facts.map(f=>`<li style="margin-bottom:5px;display:flex;gap:6px;"><span style="color:${d.c};flex-shrink:0;">›</span><span>${f}</span></li>`).join('');
+    panel.innerHTML=`
+      <div style="padding:14px 16px;border-left:4px solid ${d.c};">
+        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
+          <span style="font-size:13px;font-weight:700;color:var(--navy);">${d.full}</span>
+          <span style="font-size:18px;font-weight:700;color:${d.c};font-variant-numeric:tabular-nums;">${d.amt} · ${d.v}%</span>
+          <span style="font-size:11px;color:#059669;font-weight:500;">${d.trend}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px;">${d.desc}</div>
+        <ul style="list-style:none;padding:0;font-size:11px;color:var(--muted);">${facts}</ul>
+      </div>`;
+    panel.style.display='block';
+  };
+  return t;
+}
+
+// Left column (44.5%)
+const leftCol=document.createElement('div');
+leftCol.style.cssText='flex:44.5;display:flex;flex-direction:column;';
+leftCol.appendChild(buildTile(0,'flex:1;'));
+
+// Right column (55.5%)
+const rightCol=document.createElement('div');
+rightCol.style.cssText='flex:55.5;display:flex;flex-direction:column;gap:2px;';
+
+// Right top — Sales & Use Tax (68.3% of right height)
+rightCol.appendChild(buildTile(1,'flex:68.3;'));
+
+// Right bottom row — Corp + Misc
+const rightBot=document.createElement('div');
+rightBot.style.cssText='flex:31.7;display:flex;gap:2px;';
+rightBot.appendChild(buildTile(2,'flex:74.4;'));
+rightBot.appendChild(buildTile(3,'flex:25.6;'));
+rightCol.appendChild(rightBot);
+
+tm.appendChild(leftCol);
+tm.appendChild(rightCol);
+
+// 8. Fund Tiles — interactive
+const FU_DETAIL=[
+  {extra:'Largest single source. Primarily Medicaid federal match (~$3.5B), federal highway funds (FHWA), Title I/IDEA education grants, SNAP, TANF, and dozens of smaller federal programs. Cannot be reprogrammed at state discretion.',top:'Top recipients: DHHS · Transportation · Education'},
+  {extra:'Dedicated revenue tied to specific programs. Motor fuel taxes for roads, hospital assessments for Medicaid, lottery proceeds for education, casino gaming taxes for property tax credits, and 100+ smaller program-specific funds.',top:'Top recipients: Transportation · Revenue · DHHS · University of NE'},
+  {extra:'Primary discretionary fund, fueled by state income and sales taxes. Subject to full legislative appropriation. In FY26, $1.71B was transferred out for property tax relief before agency spending.',top:'Top recipients: DHHS · Education · University of NE · Corrections'},
+  {extra:'Internal service funds, enterprise operations, trust accounts, and revolving accounts. Revenues cycle back into the programs that generate them.',top:'Top recipients: Admin Services · various enterprise operations'},
+];
+let activeFund=null;
+const strip=document.getElementById('fundStrip');
+const tiles=document.getElementById('fundTiles');
+FU.forEach((d,i)=>{
+  // Strip segment
+  const seg=document.createElement('div');
+  seg.style.cssText=`flex:${d.p};background:${d.c};transition:opacity .2s;cursor:pointer;`;
+  seg.title=`${d.n}: $${(d.v/1000).toFixed(2)}B`;
+  seg.onclick=()=>selectFund(i);
+  strip.appendChild(seg);
+  // Tile
+  const tile=document.createElement('div');
+  tile.id=`ft${i}`;
+  tile.style.cssText=`padding:14px;border-radius:10px;border:2px solid ${d.c}22;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;background:var(--card);`;
+  tile.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <span style="width:10px;height:10px;border-radius:3px;background:${d.c};flex-shrink:0;display:inline-block;"></span>
+      <span style="font-size:11px;font-weight:600;color:var(--navy);">${d.n}</span>
+    </div>
+    <div style="font-size:22px;font-weight:700;color:${d.c};font-variant-numeric:tabular-nums;margin-bottom:4px;">$${(d.v/1000).toFixed(2)}B</div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden;">
+        <div style="width:${d.p*2.8}%;height:100%;background:${d.c};border-radius:3px;"></div>
+      </div>
+      <span style="font-size:11px;font-weight:600;color:${d.c};">${d.p}%</span>
+    </div>`;
+  tile.onmouseenter=()=>{if(activeFund!==i)tile.style.borderColor=d.c+'88';tile.style.transform='translateY(-2px)';tile.style.boxShadow=`0 6px 20px ${d.c}22`;};
+  tile.onmouseleave=()=>{if(activeFund!==i){tile.style.borderColor=d.c+'22';tile.style.transform='';tile.style.boxShadow='';}};
+  tile.onclick=()=>selectFund(i);
+  tiles.appendChild(tile);
+});
+
+function selectFund(i){
+  const d=FU[i];const det=document.getElementById('fundDetail');
+  if(activeFund===i){
+    // Deselect
+    activeFund=null;det.style.display='none';
+    FU.forEach((_,j)=>{
+      document.getElementById(`ft${j}`).style.cssText=`padding:14px;border-radius:10px;border:2px solid ${FU[j].c}22;cursor:pointer;transition:all .2s;background:var(--card);`;
+      strip.children[j].style.opacity='1';
+    });
+    return;
+  }
+  activeFund=i;
+  FU.forEach((_,j)=>{
+    const t=document.getElementById(`ft${j}`);
+    const isActive=j===i;
+    t.style.cssText=`padding:14px;border-radius:10px;border:2px solid ${FU[j].c}${isActive?'':22};cursor:pointer;transition:all .2s;background:var(--card);${isActive?`box-shadow:0 6px 20px ${FU[j].c}33;transform:translateY(-2px);border-color:${FU[j].c};`:'opacity:.55;'}`;
+    strip.children[j].style.opacity=isActive?'1':'0.35';
+  });
+  document.getElementById('fdTitle').textContent=`${d.n} — $${(d.v/1000).toFixed(2)}B (${d.p}% of total)`;
+  document.getElementById('fdBody').innerHTML=`<strong>${FU_DETAIL[i].top}</strong><br>${FU_DETAIL[i].extra}`;
+  det.style.cssText=`display:block;margin-top:14px;padding:12px 14px;border-radius:8px;border:1px solid var(--border);border-left:4px solid ${d.c};`;
+}
+
+// 9. GF Category — Animated SVG Ring Charts (2×2 grid)
+const GC_RING=[
+  {n:'Agency Operations',  v:2121.4, pct:38.7, c:'#1D5FA8'},
+  {n:'Aid to Individuals', v:1747.6, pct:31.9, c:'#D85A30'},
+  {n:'Aid to Local Govt',  v:1594.0, pct:29.1, c:'#6C63D4'},
+  {n:'Construction',        v:21.6,   pct:0.4,  c:'#059669'},
+];
+const rings=document.getElementById('gfRings');
+const R=46, CIRC=2*Math.PI*R;
+GC_RING.forEach((d,i)=>{
+  const wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);transition:box-shadow .2s;';
+  wrap.onmouseenter=()=>wrap.style.boxShadow=`0 4px 16px ${d.c}28`;
+  wrap.onmouseleave=()=>wrap.style.boxShadow='';
+  // SVG ring
+  const offset=CIRC*(1-d.pct/100);
+  wrap.innerHTML=`
+    <svg width="104" height="104" viewBox="0 0 104 104" style="flex-shrink:0;">
+      <circle cx="52" cy="52" r="${R}" fill="none" stroke="${d.c}18" stroke-width="9"/>
+      <circle cx="52" cy="52" r="${R}" fill="none" stroke="${d.c}" stroke-width="9"
+        stroke-linecap="round" stroke-dasharray="${CIRC}"
+        stroke-dashoffset="${CIRC}" transform="rotate(-90 52 52)"
+        style="transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);"
+        id="arc${i}"/>
+      <text x="52" y="46" text-anchor="middle" dominant-baseline="central"
+        style="font-size:15px;font-weight:700;fill:${d.c};font-family:'DM Sans',sans-serif;">${d.pct}%</text>
+      <text x="52" y="62" text-anchor="middle" dominant-baseline="central"
+        style="font-size:10px;fill:var(--muted,#64748B);font-family:'DM Sans',sans-serif;">of GF</text>
+    </svg>
+    <div style="min-width:0;">
+      <div style="font-size:18px;font-weight:700;color:${d.c};font-variant-numeric:tabular-nums;line-height:1;margin-bottom:4px;">$${(d.v/1000).toFixed(2)}B</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text,#0C1E3A);line-height:1.35;margin-bottom:6px;">${d.n}</div>
+      <div style="height:4px;background:${d.c}22;border-radius:2px;overflow:hidden;">
+        <div style="height:100%;width:0%;background:${d.c};border-radius:2px;transition:width 1.2s cubic-bezier(.4,0,.2,1);" id="bar${i}"></div>
+      </div>
+    </div>`;
+  rings.appendChild(wrap);
+});
+// Trigger animations after brief delay
+setTimeout(()=>{
+  GC_RING.forEach((d,i)=>{
+    const arc=document.getElementById('arc'+i);
+    const bar=document.getElementById('bar'+i);
+    const offset=CIRC*(1-d.pct/100);
+    if(arc) arc.style.strokeDashoffset=offset;
+    if(bar) bar.style.width=Math.min(d.pct*2.5,100)+'%';
+  });
+},200);
+
+// 10. Insights
+const ig=document.getElementById('insights');
+IN.forEach(i=>{const e=document.createElement('div');e.className='insight';e.style.cssText=`border-left-color:${i.c};border-left-width:4px;`;e.innerHTML=`<span class="ins-icon">${i.i}</span><div class="ins-title">${i.t}</div><div class="ins-desc">${i.d}</div>`;ig.appendChild(e);});
+
+// 11. Agency Treemap (D3 squarified)
+const TM_DATA=[
+  {n:'Health & Human Services', short:'DHHS',       v:2051.6, pct:37.4, c:'#D85A30', yoy:'+$28.3M (+1.4%)', yoyDir:'up',
+   desc:'Nebraska\'s largest agency. Covers Medicaid, Developmental Disabilities, Child Welfare, Behavioral Health, Public Health, and aging programs.',
+   programs:['Medicaid: $1,083.2M','Dev. Disabilities Aid: $212.7M','Child Welfare: $182.8M','Behavioral Health Aid: $70.1M','Public Assistance: $76.4M']},
+  {n:'Dept. of Education',       short:'NDE',        v:1333.0, pct:24.3, c:'#6C63D4', yoy:'-$11.0M (-0.8%)', yoyDir:'dn',
+   desc:'Funds K-12 public schools through the TEEOSA formula, special education reimbursements, ESU support, and early childhood programs.',
+   programs:['TEEOSA School Aid: $1,036.5M','Special Education: $235.7M','Aid to ESU\'s: $13.1M','Early Childhood: $11.1M']},
+  {n:'University of Nebraska',   short:'UN',         v:708.1,  pct:12.9, c:'#1D5FA8', yoy:'+$4.4M (+0.6%)', yoyDir:'up',
+   desc:'Supports the University system across 5 campuses (UNL, UNO, UNMC, UNK, NCTA). Includes operating base and Career Scholarships.',
+   programs:['Operating Base: $695.7M','Nebraska Career Scholarships: $8.0M','NCTA Earmark: $3.9M']},
+  {n:'Dept. of Corrections',     short:'NDCS',       v:382.5,  pct:7.0,  c:'#DC2626', yoy:'+$12.1M (+3.3%)', yoyDir:'up',
+   desc:'Operates state correctional facilities. FY26 includes 56 new FTE positions for three specialty units at the Reception & Treatment Center.',
+   programs:['Agency Operations: $366.4M','Vocational/Life Skills Aid: $4.0M','New RTC Units (56 FTEs): funded']},
+  {n:'Supreme Court',            short:'Court',      v:245.2,  pct:4.5,  c:'#4B3FC0', yoy:'+$5.8M (+2.4%)', yoyDir:'up',
+   desc:'Funds the entire Nebraska judicial system including district courts, county courts, probation, and juvenile services.',
+   programs:['Court Operations: $239.1M','Judicial Aid Programs: $0.3M','LB 513 — Judge Salary Increase: +$0.5M']},
+  {n:'Dept. of Revenue',         short:'DOR',        v:204.3,  pct:3.7,  c:'#0D7A5F', yoy:'+$10.7M (+5.5%)', yoyDir:'up',
+   desc:'Collects state taxes and distributes the Homestead Exemption property tax relief to all 93 Nebraska counties.',
+   programs:['Homestead Exemption: $159.9M','Agency Operations: $33.7M','Revenue Enforcement: $2.0M']},
+  {n:'Community Colleges',       short:'CC',         v:119.1,  pct:2.2,  c:'#059669', yoy:'$0 (0.0%)', yoyDir:'nt',
+   desc:'State aid to 6 community college areas. FY26 adds $5M specifically for dual enrollment programs (LB 173).',
+   programs:['State Aid Base: $114.1M','Dual Enrollment (LB 173): $5.0M']},
+  {n:'State Patrol',             short:'NSP',        v:90.7,   pct:1.7,  c:'#64748B', yoy:'-$0.2M (-0.3%)', yoyDir:'dn',
+   desc:'Statewide law enforcement, traffic safety, crime laboratory, and aviation support. Wages include 3% market adjustment.',
+   programs:['Sworn Officer Operations: $85M+','Crime Lab & Toxicology: funded','Aviation Support: funded']},
+  {n:'State Colleges',           short:'SCs',        v:77.2,   pct:1.4,  c:'#B45309', yoy:'+$2.1M (+2.8%)', yoyDir:'up',
+   desc:'Supports Chadron, Peru, and Wayne State Colleges. Received half of calculated salary and health insurance increases.',
+   programs:['Operations (3 colleges): $69.9M','Nebraska Career Scholarships: $5.2M','RHOP/PHEAST: $0.6M']},
+  {n:'Veterans Affairs',         short:'VA',         v:58.1,   pct:1.1,  c:'#5A7A1E', yoy:'+$1.7M (+3.0%)', yoyDir:'up',
+   desc:'Provides benefits counseling, veteran home care, and cemetery services to Nebraska\'s 140,000+ veterans.',
+   programs:['Veterans Benefits & Services: $56.4M','Veteran Home Operations: included','Guard Tuition Assistance: $1.1M']},
+];
+
+let activeTile=null;
+const wrap=document.getElementById('tmapWrap');
+const W=wrap.offsetWidth||900, H=400;
+
+// D3 squarified treemap
+const tmRoot=d3.hierarchy({children:TM_DATA}).sum(d=>d.v);
+d3.treemap().size([W,H]).paddingInner(3).paddingOuter(3).round(true)(tmRoot);
+
+const svg=d3.select('#tmapWrap').append('svg').attr('width','100%').attr('height',H).attr('viewBox',`0 0 ${W} ${H}`);
+const cells=svg.selectAll('g').data(tmRoot.leaves()).enter().append('g')
+  .attr('transform',d=>`translate(${d.x0},${d.y0})`).style('cursor','pointer');
+
+// Rects
+cells.append('rect')
+  .attr('width',d=>Math.max(0,d.x1-d.x0))
+  .attr('height',d=>Math.max(0,d.y1-d.y0))
+  .attr('rx',4).attr('ry',4)
+  .attr('fill',d=>d.data.c)
+  .attr('opacity',0.9)
+  .on('mouseover',function(e,d){if(activeTile!==d.data.n)d3.select(this).attr('opacity',1).attr('filter','brightness(1.12)');})
+  .on('mouseout',function(e,d){if(activeTile!==d.data.n)d3.select(this).attr('opacity',0.9).attr('filter','none');})
+  .on('click',function(e,d){selectTile(d.data);});
+
+// Labels — only if cell is big enough
+cells.each(function(d){
+  const cw=d.x1-d.x0, ch=d.y1-d.y0;
+  const g=d3.select(this);
+  if(cw>70&&ch>40){
+    g.append('text').attr('x',10).attr('y',ch-28)
+      .style('fill','rgba(255,255,255,.95)').style('font-size',cw>200?'13px':'10px')
+      .style('font-weight','600').style('font-family',"'DM Sans',sans-serif")
+      .text(cw>140?d.data.n:d.data.short);
+    g.append('text').attr('x',10).attr('y',ch-12)
+      .style('fill','rgba(255,255,255,.8)').style('font-size',cw>200?'12px':'10px')
+      .style('font-family',"'DM Sans',sans-serif")
+      .text(`$${d.data.v.toFixed(0)}M`);
+  } else if(cw>30&&ch>25){
+    g.append('text').attr('x',cw/2).attr('y',ch/2).attr('text-anchor','middle').attr('dominant-baseline','central')
+      .style('fill','rgba(255,255,255,.9)').style('font-size','9px').style('font-weight','600')
+      .style('font-family',"'DM Sans',sans-serif")
+      .text(d.data.short);
+  }
+});
+
+function selectTile(d){
+  const panel=document.getElementById('tmapDetail');
+  const inner=document.getElementById('tmapDetailInner');
+  if(activeTile===d.n){
+    activeTile=null; panel.style.display='none';
+    cells.selectAll('rect').attr('opacity',0.9).attr('filter','none');
+    return;
+  }
+  activeTile=d.n;
+  cells.selectAll('rect').attr('opacity',(nd)=>nd.data.n===d.n?1:0.4).attr('filter',(nd)=>nd.data.n===d.n?'brightness(1.1)':'none');
+  const chgColor=d.yoyDir==='up'?'#059669':d.yoyDir==='dn'?'#DC2626':'#888';
+  const progList=d.programs.map(p=>`<li style="margin-bottom:4px;">${p}</li>`).join('');
+  inner.innerHTML=`
+    <div style="padding:16px 20px;border-left:5px solid ${d.c};display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap;">
+      <div style="flex:0 0 auto;">
+        <div style="font-size:11px;font-weight:600;color:${d.c};text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">${d.n}</div>
+        <div style="font-size:32px;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;line-height:1;">$${d.v.toFixed(1)}M</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px;">${d.pct}% of General Fund</div>
+        <div style="font-size:12px;font-weight:600;color:${chgColor};margin-top:6px;">FY25→FY26: ${d.yoy}</div>
+      </div>
+      <div style="width:1px;background:var(--border);align-self:stretch;flex-shrink:0;"></div>
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.55;">${d.desc}</div>
+        <div style="font-size:10px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Key Appropriations</div>
+        <ul style="list-style:none;padding:0;">${progList}</ul>
+      </div>
+    </div>`;
+  panel.style.display='block';
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// 12. Waterfall
+const wfEl=document.getElementById('wf');const mW=6870;
+WF.forEach(d=>{const w=Math.abs(d.v)/mW*100;const lbl=d.v>0?`+$${d.v.toLocaleString()}M`:`-$${Math.abs(d.v).toLocaleString()}M`;const bg=d.b?'background:var(--bg);border-radius:6px;':'';wfEl.innerHTML+=`<div class="wf-row" style="${bg}"><div class="wf-lbl">${d.l}</div><div class="wf-bar"><div class="wf-fill" style="width:${w}%;background:${d.c};min-width:40px;${d.b?'font-weight:600;':''}"><span class="wf-val">${lbl}</span></div></div></div>`;});
+</script>
+</body>
+</html>
