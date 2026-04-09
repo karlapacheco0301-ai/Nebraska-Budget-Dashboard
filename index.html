@@ -575,22 +575,121 @@ const tGrad=tCtx.createLinearGradient(0,0,0,260);
 tGrad.addColorStop(0,'rgba(204,0,0,.18)');tGrad.addColorStop(1,'rgba(204,0,0,.01)');
 tRef=new Chart(tCtx,{type:'line',data:{labels:['FY2022','FY2023','FY2024','FY2025','FY2026'],datasets:[{label:'Budget ($B)',data:[14.938,15.499,18.600,19.840,19.798],borderColor:'#CC0000',borderWidth:2.5,backgroundColor:tGrad,tension:0.35,fill:true,pointBackgroundColor:'#CC0000',pointBorderColor:'#fff',pointBorderWidth:[2,2,2,2,3],pointRadius:[5,5,5,5,11]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...TOpts,callbacks:{label:c=>` $${c.parsed.y.toFixed(2)}B all-funds`}}},scales:{y:{min:12,max:22,ticks:{callback:v=>'$'+v+'B',font:{size:11}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:12}},grid:{display:false}}}}});
 
-// 2. Sector / Department — two-level drill-down table
+// 2. Sector / Department / Programs — three-level drill-down
 const SECTOR_DEPTS={
-  'Health & Human Svcs':  [{n:'Health & Human Services',v:8289.9},{n:'Veterans Affairs',v:100.0},{n:'Blind & Visually Impaired',v:7.8},{n:'Foster Care Review Board',v:3.9},{n:'Equal Opportunity Comm.',v:2.6}],
-  'Education':             [{n:'University of Nebraska',v:2868.2},{n:'Dept. of Education',v:2242.2},{n:'Community Colleges',v:385.1},{n:'State Colleges',v:184.8},{n:'Postsecondary Coord. Comm.',v:41.1}],
-  'Financial Services':    [{n:'Dept. of Revenue',v:1472.4},{n:'State Treasurer',v:51.6},{n:'Retirement Board',v:45.5},{n:'State Auditor',v:7.3},{n:'Investment Council',v:3.9}],
-  'Transportation':        [{n:'Dept. of Transportation',v:1502.5},{n:'Motor Vehicles (DMV)',v:58.8}],
-  'Public Safety':         [{n:'Dept. of Corrections',v:411.6},{n:'State Patrol',v:129.9},{n:'Military Dept.',v:41.7},{n:'Crime Commission',v:38.1},{n:'Fire Marshal',v:12.3}],
-  'Legal & Judiciary':     [{n:'Supreme Court',v:258.3},{n:'Public Service Comm.',v:115.4},{n:'Attorney General',v:21.1},{n:'Workers Comp. Court',v:7.3},{n:'Public Advocacy',v:5.8}],
-  'Infrastructure':        [{n:'Capital Construction',v:262.8},{n:'Water, Energy & Environ.',v:222.2}],
-  'Admin Services':        [{n:'Admin. Services (DAS)',v:336.1}],
-  'Economic Dev.':         [{n:'Economic Development',v:261.9},{n:'Racing & Gaming Comm.',v:26.6},{n:'Nebraska Tourism Comm.',v:10.1}],
-  'Agriculture':           [{n:'Game and Parks',v:142.2},{n:'Agriculture',v:22.1},{n:'Nebraska Corn Board',v:19.8},{n:'Brand Committee',v:6.6},{n:'Board of Agriculture',v:5.0}],
-  'Other Sectors (4)':     [{n:'Labor',v:64.4},{n:'Legislative Council',v:27.9},{n:'Dept. of Insurance',v:15.2},{n:'Banking',v:10.2},{n:'Historical Society',v:9.5}],
+  'Health & Human Svcs':  [{n:'Health & Human Services',v:8289.9,k:'hhs'},{n:'Veterans Affairs',v:100.0,k:'va'},{n:'Blind & Visually Impaired',v:7.8,k:'bvi'},{n:'Foster Care Review Board',v:3.9,k:'fcr'},{n:'Equal Opportunity Comm.',v:2.6,k:'eoc'}],
+  'Education':             [{n:'Dept. of Education',v:2242.2,k:'nde'},{n:'University of Nebraska',v:2868.2,k:'un'},{n:'Community Colleges',v:385.1,k:'cc'},{n:'State Colleges',v:184.8,k:'sc'},{n:'Postsecondary Coord. Comm.',v:41.1,k:'ccpe'}],
+  'Financial Services':    [{n:'Dept. of Revenue',v:1472.4,k:'dor'},{n:'State Treasurer',v:51.6,k:'tres'},{n:'Retirement Board',v:45.5,k:'rb'}],
+  'Transportation':        [{n:'Dept. of Transportation',v:1502.5,k:'ndot'},{n:'Motor Vehicles (DMV)',v:58.8,k:'dmv'}],
+  'Public Safety':         [{n:'Dept. of Corrections',v:411.6,k:'ndcs'},{n:'State Patrol',v:129.9,k:'nsp'},{n:'Military Dept.',v:41.7,k:'mil'},{n:'Crime Commission',v:38.1,k:'ncc'},{n:'Fire Marshal',v:12.3,k:'sfm'}],
+  'Legal & Judiciary':     [{n:'Supreme Court',v:258.3,k:'court'},{n:'Public Service Comm.',v:115.4,k:'psc'},{n:'Attorney General',v:21.1,k:'ago'},{n:'Public Advocacy',v:5.8,k:'pa'}],
+  'Infrastructure':        [{n:'Capital Construction',v:262.8,k:'cap'},{n:'Water, Energy & Environ.',v:222.2,k:'dwee'}],
+  'Admin Services':        [{n:'Admin. Services (DAS)',v:336.1,k:'das'}],
+  'Economic Dev.':         [{n:'Economic Development',v:261.9,k:'nded'},{n:'Racing & Gaming Comm.',v:26.6,k:'rgc'},{n:'Nebraska Tourism Comm.',v:10.1,k:'ntc'}],
+  'Agriculture':           [{n:'Game and Parks',v:142.2,k:'ngpc'},{n:'Agriculture',v:22.1,k:'nda'}],
+  'Other Sectors (4)':     [{n:'Labor',v:64.4,k:'dol'},{n:'Legislative Council',v:27.9,k:'lc'},{n:'Dept. of Insurance',v:15.2,k:'ins'}],
 };
+
+// Programs mapped by department key — from KAIP Programs Template
+const DEPT_PROGRAMS={
+  hhs:[
+    {n:'Medicaid',v:1083.2,d:'Primary state-federal health coverage for low-income Nebraskans. Covers medical, dental, behavioral health and long-term care services.'},
+    {n:'Hospital Assessment Fund',v:632.5,d:'Provider tax on hospitals that draws additional federal Medicaid match. Funds expanded Medicaid coverage.'},
+    {n:'Developmental Disabilities Aid',v:212.7,d:'Services and residential supports for Nebraskans with intellectual and developmental disabilities. FY26 funds waitlist elimination.'},
+    {n:'Child Welfare Aid',v:182.8,d:'Foster care, adoption assistance, family preservation services and child protective services.'},
+    {n:'Public Assistance',v:76.4,d:'Cash assistance, food support, and basic needs programs for low-income families.'},
+    {n:'Behavioral Health Aid',v:70.1,d:'Community mental health, substance use treatment, and psychiatric residential services.'},
+    {n:'Children\'s Health Insurance',v:30.0,d:'CHIP coverage for children in families above Medicaid limits but without affordable employer insurance.'},
+    {n:'Opioid Recovery Aid',v:11.8,d:'Treatment, recovery support, and prevention programs for opioid use disorder statewide.'},
+  ],
+  nde:[
+    {n:'TEEOSA State Aid',v:1036.5,d:'Primary K-12 school aid formula distributing GF dollars to public districts based on student need and local resources.'},
+    {n:'Special Education (GF)',v:235.7,d:'State share of special education services for students with disabilities, supplementing federal IDEA funds.'},
+    {n:'Special Education (EFF)',v:291.4,d:'Special education reimbursements funded through the Education Future Fund.'},
+    {n:'Foundation Aid',v:113.0,d:'Per-pupil foundation aid component of the TEEOSA formula ensuring a base level for every student.'},
+    {n:'Aid to ESU\'s',v:13.1,d:'Support to Nebraska\'s 17 Educational Service Units for cooperative and technology services.'},
+    {n:'Early Childhood Programs',v:11.1,d:'Grants for early childhood education targeting at-risk children before kindergarten.'},
+    {n:'NE Career Scholarships',v:8.0,d:'Scholarships supporting students pursuing high-demand career and technical education pathways.'},
+  ],
+  un:[
+    {n:'NE Career Scholarships',v:8.0,d:'Career scholarships supporting University of Nebraska students in high-demand fields.'},
+  ],
+  cc:[
+    {n:'Community College Future Fund',v:266.0,d:'State distribution replacing eliminated community college property levy authority (LB 243, 2023).'},
+    {n:'Aid to Community Colleges',v:119.1,d:'Base state aid to Nebraska\'s 6 community college areas including $5M new dual enrollment funding.'},
+    {n:'Scholarships',v:2.9,d:'Need-based and career pathway scholarships for community college students.'},
+  ],
+  ccpe:[
+    {n:'NE Opportunity Grant',v:17.9,d:'Need-based grant for Nebraska students pursuing postsecondary education, partially lottery-funded.'},
+    {n:'NE Career Scholarships',v:8.0,d:'Scholarships for students in high-demand postsecondary career programs.'},
+    {n:'NE Opportunity Grant (GF)',v:7.1,d:'General Fund component of the Nebraska Opportunity Grant program.'},
+    {n:'Higher Education Aid',v:4.6,d:'State aid to private and independent postsecondary institutions serving Nebraska students.'},
+    {n:'Access College Early',v:1.4,d:'Dual-enrollment program supporting high school students earning college credit early.'},
+  ],
+  dor:[
+    {n:'School Property Tax Relief',v:780.0,d:'Transfers to counties to provide direct property tax credits for K-12 school levies (LB 34, 2024 Special Session).'},
+    {n:'Property Tax Credit Fund',v:464.0,d:'Statewide property tax credits distributed to all taxable property owners through county treasurers.'},
+    {n:'Homestead Exemption',v:159.9,d:'Property tax exemption for qualifying elderly, disabled, and veterans — distributed as direct state reimbursement.'},
+  ],
+  tres:[
+    {n:'Inland Port Authority',v:25.0,d:'State support for inland port development to promote Nebraska as a logistics and trade hub.'},
+    {n:'Mutual Finance Assist',v:8.1,d:'Financial assistance supporting local mutual aid and insurance programs.'},
+    {n:'Convention Center Act',v:7.1,d:'Tax increment financing and state support for convention center development in Nebraska cities.'},
+    {n:'Sports Arena Fac. Act',v:4.5,d:'State financing assistance for qualifying sports arena facilities to attract economic development.'},
+  ],
+  ndot:[
+    {n:'Public Airports',v:59.3,d:'State aid to municipal airports for infrastructure improvements and safety upgrades.'},
+    {n:'Local Transit',v:6.3,d:'Operating and capital support for local public transit systems in Nebraska communities.'},
+  ],
+  ndcs:[
+    {n:'Reentry/Restorative Justice',v:7.8,d:'Programs supporting successful reentry of incarcerated individuals into the community, reducing recidivism.'},
+    {n:'Vocational/Life Skills Aid',v:4.0,d:'Vocational training and life skills programs for incarcerated individuals to improve employment prospects.'},
+    {n:'Training Programs',v:0.5,d:'Staff training and professional development programs within correctional facilities.'},
+  ],
+  mil:[
+    {n:'Governor\'s Emergency Program',v:5.0,d:'Emergency preparedness and disaster response funding managed through the Military Department.'},
+    {n:'Guard Tuition Assistance',v:1.1,d:'Tuition assistance for National Guard members pursuing higher education while serving Nebraska.'},
+    {n:'Preparedness Grants',v:0.2,d:'Grants to local governments and organizations for emergency preparedness activities.'},
+  ],
+  ncc:[
+    {n:'Community Based Juvenile Svcs',v:5.8,d:'Community-based alternatives to detention for juvenile offenders, reducing incarceration and improving outcomes.'},
+    {n:'Violence Prevention Grants',v:0.6,d:'Grants to communities and organizations for violence prevention programs and interventions.'},
+    {n:'Juvenile Services Grants',v:0.6,d:'Grants supporting evidence-based juvenile justice programs at the local level.'},
+  ],
+  psc:[
+    {n:'Universal Services Fund',v:84.0,d:'Subsidizes telecommunications services in high-cost and rural areas of Nebraska to ensure connectivity.'},
+    {n:'Enhanced Wireless 911',v:8.5,d:'Funding for Next Generation 911 infrastructure and enhanced emergency dispatch capabilities.'},
+  ],
+  dwee:[
+    {n:'Environmental Quality Programs',v:18.6,d:'Oversight of air, water, and waste management permits and compliance across Nebraska.'},
+    {n:'Soil/Water Conservation',v:7.5,d:'State aid to landowners for conservation practices including terraces, waterways and irrigation management.'},
+    {n:'NE Water Conservation Fund',v:2.0,d:'Programs for water conservation, irrigation efficiency, and sustainable water resource management.'},
+    {n:'Water Quality Fund',v:1.2,d:'Grants and programs to protect and improve surface water and groundwater quality.'},
+  ],
+  nded:[
+    {n:'Economic Recovery Act',v:50.0,d:'Major business incentive program providing refundable tax credits for investment and job creation in Nebraska.'},
+    {n:'Economic Recovery Act (CF)',v:27.4,d:'Cash fund component of the Economic Recovery Act for direct business development incentives.'},
+    {n:'Project REACH',v:25.5,d:'Regional Economic Access, Collaboration and Hub program supporting rural economic development.'},
+    {n:'Housing/Community Dev.',v:19.7,d:'Affordable housing development grants and community development programs statewide.'},
+    {n:'Business Innovation Act',v:11.0,d:'Grants for business prototyping, R&D, value-added agriculture, and commercialization of innovations.'},
+  ],
+  ngpc:[
+    {n:'Environmental Trust Grants',v:25.8,d:'Grants from the Nebraska Environmental Trust Fund for conservation, recreation, and environmental education.'},
+    {n:'Habitat Development',v:1.7,d:'Programs to develop and enhance wildlife habitat on public lands throughout Nebraska.'},
+    {n:'Wildlife Conservation',v:0.6,d:'Conservation programs protecting Nebraska\'s native fish, wildlife, and natural heritage resources.'},
+  ],
+  dol:[
+    {n:'Workforce Development',v:9.9,d:'Training and employment programs connecting Nebraskans with jobs and helping employers find qualified workers.'},
+    {n:'Unemployment Aid',v:1.6,d:'Administration of unemployment insurance and reemployment services for job seekers.'},
+  ],
+  rgc:[
+    {n:'Gaming Tax Distribution',v:20.0,d:'Distribution of casino gaming tax revenues supporting property tax relief and other state programs.'},
+  ],
+};
+
 const TOTAL_ALL=19798;
 let activeSector=null;
+let activeDept=null;
 
 const drillWrap=document.getElementById('sectorDrillWrap');
 const drillDetail=document.getElementById('sectorDrillDetail');
@@ -601,6 +700,52 @@ const tHdr=document.createElement('div');
 tHdr.style.cssText='display:flex;align-items:center;gap:10px;padding:4px 6px 6px;border-bottom:2px solid var(--border);margin-bottom:4px;';
 tHdr.innerHTML=`<span style="width:9px;flex-shrink:0;"></span><span style="font-size:9px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;flex:1;">Sector</span><span style="font-size:9px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;width:54px;text-align:right;">Amount</span><span style="font-size:9px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;width:54px;text-align:right;">% Total</span><span style="width:16px;"></span>`;
 drillWrap.appendChild(tHdr);
+
+function buildDeptRow(d, di, depts, s, v){
+  const dp=(d.v/v*100).toFixed(1);
+  const dTot=(d.v/sectorTot*100).toFixed(1);
+  const maxD=depts[0]?depts[0].v:1;
+  const bw=Math.min((d.v/maxD)*100,100);
+  const progs=DEPT_PROGRAMS[d.k]||[];
+  const hasProgs=progs.length>0;
+  return `<div id="drow_${d.k}" style="border-bottom:1px solid var(--border)${di===depts.length-1&&!hasProgs?';border-bottom:none':''};">
+    <div onclick="toggleProgs('${d.k}','${s.c}')" style="display:flex;align-items:center;gap:10px;padding:7px 10px 7px 22px;cursor:${hasProgs?'pointer':'default'};background:${di%2===0?'var(--bg)':'var(--card)'};transition:background .15s;" onmouseenter="if(${hasProgs})this.style.background='${s.c}0D'" onmouseleave="this.style.background='${di%2===0?'var(--bg)':'var(--card)'}'">
+      <div style="width:4px;height:4px;border-radius:50%;background:${s.c};flex-shrink:0;"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:11px;font-weight:500;color:var(--text);margin-bottom:3px;">${d.n}${hasProgs?'':' <span style="font-size:9px;color:var(--faint);">(no programs)</span>'}</div>
+        <div style="height:4px;background:${s.c}22;border-radius:2px;overflow:hidden;"><div style="width:${bw}%;height:100%;background:${s.c};border-radius:2px;"></div></div>
+      </div>
+      <span style="font-size:11px;font-weight:600;color:var(--navy);width:60px;text-align:right;font-variant-numeric:tabular-nums;">$${d.v>=1000?(d.v/1000).toFixed(1)+'B':Math.round(d.v)+'M'}</span>
+      <span style="font-size:10px;color:${s.c};width:54px;text-align:right;">${dp}%</span>
+      <span style="font-size:13px;color:var(--faint);width:16px;text-align:center;transition:transform .2s;" id="parrow_${d.k}">${hasProgs?'›':''}</span>
+    </div>
+    <div id="progpanel_${d.k}" style="display:none;border-top:1px solid ${s.c}22;background:${s.c}06;">
+      ${progs.map((p,pi)=>{
+        const pp=(p.v/d.v*100).toFixed(1);
+        return `<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 14px 6px 36px;border-bottom:1px solid var(--border)${pi===progs.length-1?';border-bottom:none':''};">
+          <div style="width:3px;height:3px;border-radius:50%;background:${s.c}88;flex-shrink:0;margin-top:5px;"></div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:11px;font-weight:600;color:var(--text);">${p.n}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;line-height:1.4;">${p.d}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:11px;font-weight:600;color:var(--navy);font-variant-numeric:tabular-nums;">$${p.v>=1000?(p.v/1000).toFixed(1)+'B':Math.round(p.v)+'M'}</div>
+            <div style="font-size:9px;color:${s.c};">${pp}%</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function toggleProgs(key, color){
+  const panel=document.getElementById('progpanel_'+key);
+  const arrow=document.getElementById('parrow_'+key);
+  if(!panel) return;
+  const open=panel.style.display==='block';
+  panel.style.display=open?'none':'block';
+  if(arrow) arrow.style.transform=open?'rotate(0deg)':'rotate(90deg)';
+}
 
 SC.forEach((s,i)=>{
   const v=SC26[i];
@@ -620,7 +765,6 @@ SC.forEach((s,i)=>{
   row.onmouseenter=()=>{if(activeSector!==s.n)row.style.background='var(--bg)';};
   row.onmouseleave=()=>{if(activeSector!==s.n)row.style.background='transparent';};
   row.onclick=()=>{
-    const arrow=document.getElementById('sarrow'+i);
     if(activeSector===s.n){
       activeSector=null; drillDetail.style.display='none';
       drillWrap.querySelectorAll('[data-srow]').forEach(r=>{r.style.opacity='1';r.style.background='transparent';});
@@ -631,34 +775,18 @@ SC.forEach((s,i)=>{
     drillWrap.querySelectorAll('[data-srow]').forEach(r=>{r.style.opacity=r.dataset.srow===s.n?'1':'0.45';r.style.background=r.dataset.srow===s.n?s.c+'10':'transparent';});
     document.querySelectorAll('[id^="sarrow"]').forEach((a,j)=>a.style.transform=j===i?'rotate(90deg)':'rotate(0deg)');
     const depts=SECTOR_DEPTS[s.n]||[];
-    const maxD=depts[0]?depts[0].v:1;
-    const dRows=depts.map((d,di)=>{
-      const dp=(d.v/v*100).toFixed(1);
-      const dTot=(d.v/sectorTot*100).toFixed(1);
-      const bw=Math.min((d.v/maxD)*100,100);
-      return `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px 7px 22px;border-bottom:1px solid var(--border)${di===depts.length-1?';border-bottom:none':''};background:${di%2===0?'var(--bg)':'var(--card)'};">
-        <div style="width:4px;height:4px;border-radius:50%;background:${s.c};flex-shrink:0;"></div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:11px;font-weight:500;color:var(--text);margin-bottom:3px;">${d.n}</div>
-          <div style="height:4px;background:${s.c}22;border-radius:2px;overflow:hidden;"><div style="width:${bw}%;height:100%;background:${s.c};border-radius:2px;"></div></div>
-        </div>
-        <span style="font-size:11px;font-weight:600;color:var(--navy);width:60px;text-align:right;font-variant-numeric:tabular-nums;">$${d.v>=1000?(d.v/1000).toFixed(1)+'B':d.v.toFixed(0)+'M'}</span>
-        <span style="font-size:10px;color:${s.c};width:44px;text-align:right;">${dp}% <span style="color:var(--faint);">of sector</span></span>
-        <span style="font-size:10px;color:var(--faint);width:44px;text-align:right;">${dTot}% total</span>
-      </div>`;
-    }).join('');
     drillDetail.innerHTML=`
       <div style="padding:10px 12px 6px;border-left:4px solid ${s.c};background:${s.c}08;">
-        <div style="font-size:12px;font-weight:700;color:var(--navy);">${s.n} — Departments (${depts.length})</div>
-        <div style="font-size:10px;color:var(--muted);">$${(v/1000).toFixed(1)}B total sector budget · FY2025-26 all-funds · Source: KAIP Departments</div>
+        <div style="font-size:12px;font-weight:700;color:var(--navy);">${s.n} — Departments & Programs</div>
+        <div style="font-size:10px;color:var(--muted);">$${(v/1000).toFixed(1)}B total · FY2025-26 all-funds · click a department to see its programs</div>
       </div>
       <div style="display:flex;padding:5px 10px 5px 22px;border-bottom:1px solid var(--border);background:var(--bg);">
-        <span style="font-size:9px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;flex:1;">Department</span>
+        <span style="font-size:9px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;flex:1;">Department › Programs</span>
         <span style="font-size:9px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;width:60px;text-align:right;">Budget</span>
-        <span style="font-size:9px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;width:88px;text-align:right;">% Sector</span>
-        <span style="font-size:9px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;width:44px;text-align:right;">% Total</span>
+        <span style="font-size:9px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;width:54px;text-align:right;">% Sector</span>
+        <span style="width:16px;"></span>
       </div>
-      ${dRows}`;
+      ${depts.map((d,di)=>buildDeptRow(d,di,depts,s,v)).join('')}`;
     drillDetail.style.display='block';
     drillDetail.scrollIntoView({behavior:'smooth',block:'nearest'});
   };
